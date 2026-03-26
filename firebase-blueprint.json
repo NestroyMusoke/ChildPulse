@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "Assessment": {
+      "title": "Assessment",
+      "description": "A single child health assessment containing photo analysis and voice note extraction.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" }
+          }
+        },
+        "photoAnalysis": {
+          "type": "object",
+          "properties": {
+            "wasting": { "type": "string" },
+            "pallor": { "type": "string" },
+            "sunkenEyes": { "type": "boolean" },
+            "jaundice": { "type": "boolean" },
+            "cyanosis": { "type": "boolean" },
+            "kwashiorkor": { "type": "boolean" },
+            "edema": { "type": "boolean" },
+            "rashes": { "type": "string" },
+            "estimatedAge": { "type": "string" },
+            "alertness": { "type": "string" }
+          }
+        },
+        "voiceExtraction": {
+          "type": "object",
+          "properties": {
+            "symptoms": { "type": "array", "items": { "type": "string" } },
+            "duration": { "type": "string" },
+            "severity": { "type": "string" },
+            "additionalSymptoms": { "type": "array", "items": { "type": "string" } },
+            "urgency": { "type": "string" },
+            "transcript": { "type": "string" }
+          }
+        },
+        "diagnosis": {
+          "type": "object",
+          "properties": {
+            "classification": { "type": "string", "enum": ["RED", "YELLOW", "GREEN"] },
+            "condition": { "type": "string" },
+            "reasoning": { "type": "string" },
+            "treatment": { "type": "string" },
+            "referral": { "type": "string" }
+          }
+        },
+        "chwId": { "type": "string" }
+      },
+      "required": ["timestamp", "diagnosis", "chwId"]
+    },
+    "OutbreakAlert": {
+      "title": "Outbreak Alert",
+      "description": "An AI-generated alert for a potential disease outbreak or nutritional crisis.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["MALARIA", "PNEUMONIA", "CHOLERA", "NUTRITION", "MEASLES"] },
+        "severity": { "type": "string", "enum": ["CRITICAL", "HIGH", "MODERATE"] },
+        "location": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" },
+            "radius": { "type": "number" }
+          }
+        },
+        "message": { "type": "string" },
+        "prediction": { "type": "string" },
+        "recommendation": { "type": "string" }
+      },
+      "required": ["timestamp", "type", "severity", "message"]
+    }
+  },
+  "firestore": {
+    "/assessments/{assessmentId}": {
+      "schema": "Assessment",
+      "description": "Individual patient assessments."
+    },
+    "/alerts/{alertId}": {
+      "schema": "OutbreakAlert",
+      "description": "System-wide outbreak alerts."
+    }
+  }
+}

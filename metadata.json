@@ -1,0 +1,5 @@
+{
+  "name": "ChildPulse EA",
+  "description": "AI-powered pediatric diagnostic and outbreak surveillance tool for East Africa, leveraging maternal intuition and computer vision.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}

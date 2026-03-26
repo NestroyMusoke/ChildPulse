@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: assessments
+    // Document ID: auto-generated
+    // Fields:
+    //   - timestamp: string (ISO 8601)
+    //   - location: map {latitude: number, longitude: number}
+    //   - photoAnalysis: map
+    //   - voiceExtraction: map
+    //   - diagnosis: map {classification: string, condition: string, reasoning: string, treatment: string, referral: string}
+    //   - chwId: string (uid)
+    //
+    // Collection: alerts
+    // Document ID: auto-generated
+    // Fields:
+    //   - timestamp: string (ISO 8601)
+    //   - type: string (enum)
+    //   - severity: string (enum)
+    //   - location: map
+    //   - message: string
+    //   - prediction: string
+    //   - recommendation: string
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.chwId;
+    }
+
+    function isValidAssessment(data) {
+      return data.timestamp is string &&
+             data.chwId == request.auth.uid &&
+             data.diagnosis is map &&
+             data.diagnosis.classification in ['RED', 'YELLOW', 'GREEN'];
+    }
+
+    function isValidAlert(data) {
+      return data.timestamp is string &&
+             data.type is string &&
+             data.severity in ['CRITICAL', 'HIGH', 'MODERATE'];
+    }
+
+    // Assessments: CHWs can create their own, read their own.
+    // Admins/Health Officials can read all (simplified for hackathon: all authenticated can read for surveillance)
+    match /assessments/{assessmentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAssessment(request.resource.data);
+      allow update, delete: if false; // Assessments are immutable records
+    }
+
+    // Alerts: System-generated (simulated as writable by authenticated for now, or read-only for users)
+    match /alerts/{alertId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAlert(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // Users: Basic profile
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+  }
+}
